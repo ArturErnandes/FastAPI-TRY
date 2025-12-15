@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Номера</title>
+</head>
+<body>
+    <h1>Список номеров</h1>
+
+    <ul id="numbers-list"></ul>
+
+    <h2>Добавить новый номер</h2>
+
+    <form id="add-number-form">
+        <label>
+            Имя:
+            <input type="text" id="name" required>
+        </label>
+        <br><br>
+
+        <label>
+            Телефон:
+            <input type="text" id="phone" required>
+        </label>
+        <br><br>
+
+        <button type="submit">Добавить</button>
+    </form>
+
+    <p id="result"></p>
+
+    <br>
+    <a href="index.html">← На главную</a>
+
+    <script>
+        const apiUrl = "http://127.0.0.1:8000";
+
+        function loadNumbers() {
+            fetch(`${apiUrl}/numbers`)
+                .then(res => res.json())
+                .then(data => {
+                    const list = document.getElementById("numbers-list");
+                    list.innerHTML = "";
+
+                    data.forEach(number => {
+                        const li = document.createElement("li");
+                        li.textContent = `${number.name} — ${number.phone_number}`;
+                        list.appendChild(li);
+                    });
+                });
+        }
+
+        document.getElementById("add-number-form").addEventListener("submit", event => {
+            event.preventDefault();
+
+            const name = document.getElementById("name").value;
+            const phone_number = document.getElementById("phone").value;
+
+            fetch(`${apiUrl}/numbers`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    name: name,
+                    phone_number: phone_number
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("result").innerText = data.message;
+                loadNumbers();           // обновляем список
+                event.target.reset();    // очищаем форму
+            });
+        });
+
+        loadNumbers();
+    </script>
+</body>
+</html>
