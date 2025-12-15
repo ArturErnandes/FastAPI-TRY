@@ -70,6 +70,5 @@ async def add_contact(data: ContactAddSchema, session: SessionDep):
 def get_contact():
     pass
 
-
 if __name__ == "__main__":
     uvicorn.run("database_fastapi:app", reload=True)
