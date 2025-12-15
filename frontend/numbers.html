@@ -2,16 +2,16 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Номера</title>
+    <title>Контакты</title>
 </head>
 <body>
-    <h1>Список номеров</h1>
+    <h1>Список контактов</h1>
 
-    <ul id="numbers-list"></ul>
+    <ul id="contacts-list"></ul>
 
-    <h2>Добавить новый номер</h2>
+    <h2>Добавить новый контакт</h2>
 
-    <form id="add-number-form">
+    <form id="add-contact-form">
         <label>
             Имя:
             <input type="text" id="name" required>
@@ -35,46 +35,51 @@
     <script>
         const apiUrl = "http://127.0.0.1:8000";
 
-        function loadNumbers() {
-            fetch(`${apiUrl}/numbers`)
-                .then(res => res.json())
-                .then(data => {
-                    const list = document.getElementById("numbers-list");
-                    list.innerHTML = "";
+        async function loadContacts() {
+            const response = await fetch(`${apiUrl}/contacts`);
+            const data = await response.json();
 
-                    data.forEach(number => {
-                        const li = document.createElement("li");
-                        li.textContent = `${number.name} — ${number.phone_number}`;
-                        list.appendChild(li);
-                    });
-                });
+            const list = document.getElementById("contacts-list");
+            list.innerHTML = "";
+
+            data.forEach(contact => {
+                const li = document.createElement("li");
+                li.textContent = `${contact.name} — ${contact.ph_num}`;
+                list.appendChild(li);
+            });
         }
 
-        document.getElementById("add-number-form").addEventListener("submit", event => {
-            event.preventDefault();
+        document
+            .getElementById("add-contact-form")
+            .addEventListener("submit", async (event) => {
+                event.preventDefault();
 
-            const name = document.getElementById("name").value;
-            const phone_number = document.getElementById("phone").value;
+                const name = document.getElementById("name").value;
+                const ph_num = document.getElementById("phone").value;
 
-            fetch(`${apiUrl}/numbers`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    name: name,
-                    phone_number: phone_number
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById("result").innerText = data.message;
-                loadNumbers();           // обновляем список
-                event.target.reset();    // очищаем форму
+                const response = await fetch(`${apiUrl}/contacts`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        ph_num: ph_num
+                    })
+                });
+
+                if (response.ok) {
+                    document.getElementById("result").innerText =
+                        "Контакт успешно добавлен";
+                    event.target.reset();
+                    loadContacts();
+                } else {
+                    document.getElementById("result").innerText =
+                        "Ошибка при добавлении контакта";
+                }
             });
-        });
 
-        loadNumbers();
+        loadContacts();
     </script>
 </body>
 </html>

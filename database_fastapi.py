@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from typing import Annotated
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped
 from sqlalchemy.testing.schema import mapped_column
@@ -21,8 +22,12 @@ app.add_middleware(
 )
 
 load_dotenv()
+
 pswrd = os.getenv("PASS")
-engine = create_async_engine(f'postgresql+asyncpg://postgres:{pswrd}@localhost:5555/bd_try')
+port = os.getenv("PORT")
+db_name = os.getenv("DB_NAME")
+
+engine = create_async_engine(f'postgresql+asyncpg://postgres:{pswrd}@localhost:{port}/{db_name}')
 
 new_session = async_sessionmaker(engine, expire_on_commit=False)
 
@@ -39,7 +44,7 @@ class Base(DeclarativeBase):
 
 
 class Contact(Base):
-    __tablename__ = "main"
+    __tablename__ = "contacts"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
@@ -51,8 +56,13 @@ class ContactAddSchema(BaseModel):
     ph_num: str
 
 
-class ContactSchema(BaseModel):
-    id: int
+'''class ContactSchema(BaseModel):
+    id: int'''
+
+@app.get("/main")
+async def show_main():
+    message = "Справочник номеров, главная страница"
+    return {message}
 
 
 @app.post("/contacts")
@@ -61,14 +71,17 @@ async def add_contact(data: ContactAddSchema, session: SessionDep):
         name=data.name,
         ph_num=data.ph_num
     )
+
     session.add(new_contact)
     await session.commit()
     return {'success': True}
 
 
 @app.get("/contacts")
-def get_contact():
-    pass
+async def get_contact(session: SessionDep):
+    request = select(Contact)
+    result = await session.execute(request)
+    return result.scalars().all()
 
 if __name__ == "__main__":
     uvicorn.run("database_fastapi:app", reload=True)
