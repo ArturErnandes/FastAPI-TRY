@@ -56,9 +56,6 @@ class ContactAddSchema(BaseModel):
     ph_num: str
 
 
-'''class ContactSchema(BaseModel):
-    id: int'''
-
 @app.get("/main")
 async def show_main():
     message = "Справочник номеров, главная страница"
